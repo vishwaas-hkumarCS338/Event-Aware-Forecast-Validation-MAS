@@ -1,0 +1,97 @@
+# ml_forecast.py (robust context building)
+import pickle
+from pathlib import Path
+import pandas as pd
+import numpy as np
+
+DATA_DIR = Path("data")
+MODEL_PATH = Path("models/product_quantile_models.pkl")
+
+NEEDED = ["month", "m_sin", "m_cos", "lag_1", "lag_12", "roll_3", "roll_12"]
+
+
+def _latest_context(product: str, year: int, month: int) -> pd.DataFrame | None:
+    fpath = DATA_DIR / "features_product.parquet"
+    if not fpath.exists():
+        return None
+
+    f = pd.read_parquet(fpath)
+    f = f[f["product"] == product.lower()].copy()
+    if f.empty:
+        return None
+
+    # Sort once
+    f = f.sort_values(["year", "month"]).reset_index(drop=True)
+
+    # 1) Try exact (product, year, month)
+    row = f[(f["year"] == int(year)) & (f["month"] == int(month))]
+    if not row.empty:
+        r = row.iloc[-1]  # safe
+        X = {k: float(r.get(k, 0.0)) for k in NEEDED}
+        return pd.DataFrame([X])
+
+    # 2) Synthesize from latest history for that product
+    last = f.iloc[-1]
+    m = int(month)
+
+    # How much history do we have?
+    # We'll only trust 12-lag and roll_12 if we have at least 12 rows.
+    has12 = len(f) >= 12
+
+    # Compute rolling means from actual series to avoid relying on stored columns
+    units_series = f["units"].astype(float)
+    roll3 = float(units_series.tail(3).mean()) if len(units_series) >= 1 else 0.0
+    roll12 = float(units_series.tail(12).mean()) if has12 else 0.0
+
+    # lag_1 = last known units; lag_12 from the row 12 back if available
+    lag1 = float(last["units"])
+    if has12:
+        lag12_row_idx = len(f) - 12 - 1  # index of the row 12 months before 'last'
+        # Safer: just take the 12th-from-last value if index valid
+        lag12 = float(units_series.iloc[-12]) if len(units_series) >= 12 else 0.0
+    else:
+        lag12 = 0.0
+
+    ctx = {
+        "month": float(m),
+        "m_sin": float(np.sin(2 * np.pi * m / 12.0)),
+        "m_cos": float(np.cos(2 * np.pi * m / 12.0)),
+        "lag_1": lag1,
+        "lag_12": lag12,
+        "roll_3": roll3,
+        "roll_12": roll12,
+    }
+    return pd.DataFrame([ctx])
+
+
+def predict_product_quantiles(product: str, year: int, month: int) -> dict:
+    if not Path(MODEL_PATH).exists():
+        return {"ok": False, "error": "Model bundle not found. Run train_forecaster.py first."}
+
+    with open(MODEL_PATH, "rb") as fh:
+        bundle = pickle.load(fh)
+
+    models = bundle.get("models", {})
+    cols = bundle.get("features", NEEDED)
+
+    X = _latest_context(product, year, month)
+    if X is None or X.empty:
+        return {"ok": False, "error": f"No history or features for product={product}"}
+
+    # Ensure required columns exist & in correct order
+    for c in cols:
+        if c not in X.columns:
+            X[c] = 0.0
+    X = X[cols]
+
+    out = {}
+    for name, model in models.items():
+        out[name] = float(model.predict(X)[0])
+
+    # Normalize naming to p10/p50/p90 if keys are those
+    return {
+        "ok": True,
+        "p10": out.get("p10", out.get("q10", np.nan)),
+        "p50": out.get("p50", out.get("q50", np.nan)),
+        "p90": out.get("p90", out.get("q90", np.nan)),
+    }

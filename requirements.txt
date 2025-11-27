@@ -1,0 +1,8 @@
+﻿fastapi==0.95.2
+uvicorn[standard]==0.22.0
+pandas==2.2.2
+numpy==1.26.4
+openai==1.4.0
+chromadb
+python-dotenv==1.0.0
+tqdm==4.66.1

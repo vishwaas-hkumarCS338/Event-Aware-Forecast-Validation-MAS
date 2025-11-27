@@ -1,0 +1,31 @@
+﻿# Python / venv
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Data / models / outputs
+data/
+models/
+evaluations/
+*.parquet
+*.pkl
+*.db
+*.sqlite
+*.onnx
+
+# Large third-party binary folders (Chromadb Rust bindings etc)
+**/chromadb_rust_bindings/**
+
+# Editor files
+.vscode/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
+*.log
+
+# Node / build
+node_modules/
+dist/
