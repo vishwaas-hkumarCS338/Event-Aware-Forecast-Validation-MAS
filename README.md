@@ -1,4 +1,4 @@
-# Event-Aware Forecast Validation Lighweight Multi-Agent System (MAS)
+# Event-Aware Lighweight LLM Multi-Agent System (MAS) for Forecast Validation in Retail Supply Chains
 
 This repository implements a complete **Event-Aware Lightweight Multi-Agent System (MAS)** for **validating retail demand forecasts under real-world disruptions**.  
 The system combines **machine learning**, **quantile calibration**, **retrieval-augmented reasoning**, and **linear programming–based supplier reallocation** inside a unified **FastAPI microservice**.
