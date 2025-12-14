@@ -5,9 +5,9 @@ The system combines **machine learning**, **quantile calibration**, **retrieval-
 
 The MAS evaluates forecasts using four cooperating agents:
 
-1. **ML Forecasting Agent** – Predicts demand quantiles (p10, p50, p90).  
-2. **Event-Aware RAG + LLM Agent** – Interprets disruptions using retrieved documents.  
-3. **Supply Chain Simulation & LP Agent** – Computes supplier loss, reallocation, and feasibility.  
+1. **Supply CHain State Analysis Agent** – Obtains deep understanding of the supply chian as is.  
+2. **Event-Aware Forecasting Agent** – Predicts demand quantiles (p10, p50, p90) which aids the LightGBM decision making process. Uses RAG to generate an LLM verdict as well.  
+3. **What-If Scenario Analysis Agent** – Interprets disruptions using retrieved documents and computes supplier loss, reallocation, and feasibility.  
 4. **Coordinator Agent** – Orchestrates the entire workflow and returns the final verdict.
 
 The repository includes training pipelines, calibration tools, benchmarking scripts, RAG evaluation, LP feasibility testing, and unified comparison of calibrated vs uncalibrated forecasts.
@@ -18,7 +18,7 @@ The repository includes training pipelines, calibration tools, benchmarking scri
 
 - LightGBM quantile forecasting  
 - Post-training quantile calibration (p10/p50/p90)  
-- RAG retrieval using ChromaDB  
+- RAG retrieval using DuckDB  
 - LLM-based event reasoning  
 - Supplier reallocation using Linear Programming  
 - Full FastAPI microservice with Swagger UI  
