@@ -5,7 +5,7 @@ The system combines **machine learning**, **quantile calibration**, **retrieval-
 
 The MAS evaluates forecasts using four cooperating agents:
 
-1. **Supply CHain State Analysis Agent** – Obtains deep understanding of the supply chian as is.  
+1. **Supply Chain State Analysis Agent** – Obtains deep understanding of the supply chian as is.  
 2. **Event-Aware Forecasting Agent** – Predicts demand quantiles (p10, p50, p90) which aids the LightGBM decision making process. Uses RAG to generate an LLM verdict as well.  
 3. **What-If Scenario Analysis Agent** – Interprets disruptions using retrieved documents and computes supplier loss, reallocation, and feasibility.  
 4. **Coordinator Agent** – Orchestrates the entire workflow and returns the final verdict.
